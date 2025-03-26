@@ -2,13 +2,17 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\TimestampableTrait;
 use App\Repository\TaskRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Task
 {
+    use TimestampableTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -26,14 +30,6 @@ class Task
     #[ORM\ManyToOne(inversedBy: 'tasks')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $createdAt = null;
-
-    public function __construct()
-    {
-        $this->createdAt = new \DateTime();
-    }
 
     public function getId(): ?int
     {
@@ -88,15 +84,4 @@ class Task
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeInterface $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
 }
