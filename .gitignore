@@ -32,3 +32,6 @@
 # Ignore files PhpStorm/IDEA
 .idea/
 *.iml
+###> phpstan/phpstan ###
+phpstan.neon
+###< phpstan/phpstan ###
