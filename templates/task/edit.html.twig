@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block header_title %}
+    <h1 class="text-center my-4">Modifier la tâche</h1>
+{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            {{ form_start(form, {
+                'action': path('task_edit', { 'id': task.id }),
+                'attr': { 'novalidate': 'novalidate' }
+            }) }}
+
+            <div class="mb-3">
+                {{ form_label(form.title, null, {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.title) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.content, null, {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.content, {'attr': {'class': 'form-control', 'rows': 6}}) }}
+                {{ form_errors(form.content) }}
+            </div>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-success">Modifier</button>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

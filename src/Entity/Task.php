@@ -71,6 +71,10 @@ class Task
 
         return $this;
     }
+    public function toggle(bool $isDone): void
+    {
+        $this->isDone = $isDone;
+    }
 
     public function getUser(): ?User
     {
