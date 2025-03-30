@@ -22,30 +22,32 @@ class AppFixtures extends Fixture
     {
         $faker = Factory::create();
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $user = new User();
-            $email = 'user' . $i . '@example.com';
+            $email = 'user'.$i.'@example.com';
             $commonPassword = 'password123';
             $hashedPassword = $this->passwordHasher->hashPassword($user, $commonPassword);
 
             $roles = ['ROLE_USER'];
-            if ($i === 0) {
+            if (0 === $i) {
                 $roles[] = 'ROLE_ADMIN';
-                $email = 'admin' . $i . '@example.com';
+                $email = 'admin'.$i.'@example.com';
             }
             $user->setUsername($faker->userName)
                 ->setEmail($email)
                 ->setPassword($hashedPassword)
                 ->setRoles($roles)
-                ->initializeTimestampable();
+                ->initializeTimestampable()
+            ;
 
-            for ($j = 0; $j < 3; $j++) {
+            for ($j = 0; $j < 3; ++$j) {
                 $task = new Task();
                 $task->setTitle($faker->sentence(3))
                     ->setContent($faker->paragraph())
                     ->setIsDone($faker->boolean())
                     ->setUser($user)
-                    ->initializeTimestampable();
+                    ->initializeTimestampable()
+                ;
 
                 $manager->persist($task);
                 $user->addTask($task);

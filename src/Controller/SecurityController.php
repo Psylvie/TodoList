@@ -12,14 +12,15 @@ class SecurityController extends AbstractController
     #[Route('/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
-        if ($this->getUser() === true) {
+        if (true === $this->getUser()) {
             return $this->redirectToRoute('homepage');
         }
         $error = $authenticationUtils->getLastAuthenticationError();
         $lastUsername = $authenticationUtils->getLastUsername();
+
         return $this->render('security/login.html.twig', [
             'last_username' => $lastUsername,
-            'error'         => $error,
+            'error' => $error,
         ]);
     }
 
@@ -27,7 +28,6 @@ class SecurityController extends AbstractController
     public function loginCheck()
     {
         throw new \LogicException('Cette méthode ne doit jamais être exécutée directement. Elle est gérée par le firewall.');
-
     }
 
     #[Route('/logout', name: 'app_logout')]
