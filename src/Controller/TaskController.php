@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-
 use App\Entity\Task;
 use App\Entity\User;
 use App\Form\TaskType;
@@ -15,21 +14,19 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class TaskController extends AbstractController
 {
-
     public function __construct(
         private readonly TaskRepository $taskRepository,
         private readonly EntityManagerInterface $em,
-    )
-    {
-    }
+    ) {}
 
     #[Route('/tasks', name: 'task_list')]
     public function list(): Response
     {
         $user = $this->getUser();
         $tasks = $this->taskRepository->findBy(['user' => $user]);
+
         return $this->render('task/list.html.twig', [
-            'tasks' => $tasks
+            'tasks' => $tasks,
         ]);
     }
 
@@ -68,11 +65,13 @@ class TaskController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->em->flush();
             $this->addFlash('success', 'La tâche a bien été modifiée');
+
             return $this->redirectToRoute('task_list');
         }
+
         return $this->render('task/edit.html.twig', [
             'form' => $form->createView(),
-            'task' => $task
+            'task' => $task,
         ]);
     }
 
@@ -80,12 +79,14 @@ class TaskController extends AbstractController
     public function toogleTask(Task $task): Response
     {
         $task->toggle(!$task->isDone());
+
         try {
             $this->em->flush();
             $this->addFlash('success', sprintf('La tâche "%s" a bien été marquée comme %s.', $task->getTitle(), $task->IsDone() ? 'terminée' : 'non terminée'));
         } catch (\Exception $e) {
             $this->addFlash('error', 'Une erreur est survenue lors de la mise à jour de la tâche.');
         }
+
         return $this->redirectToRoute('task_list');
     }
 
@@ -99,4 +100,4 @@ class TaskController extends AbstractController
 
         return $this->redirectToRoute('task_list');
     }
-    }
+}

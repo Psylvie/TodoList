@@ -32,6 +32,7 @@ class TaskType extends AbstractType
                 'constraints' => [
                     new NotBlank(['message' => 'La description ne peut pas être vide.']),
                 ],
-            ]);
+            ])
+        ;
     }
 }
