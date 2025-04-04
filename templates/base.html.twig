@@ -26,9 +26,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-light fixed-top" style="background-color: #e3f2fd; padding: 1rem 0;">
     <div class="container d-flex justify-content-between align-items-center">
-        <a class="navbar-brand fs-3" href="#
-{#{{ path('default') }}#}
-">
+        <a class="navbar-brand fs-3" href="{{ path('homepage') }}">
             To Do List App
         </a>
         <img src="{{ asset('img/Logo_OpenClassrooms.png') }}" alt="OpenClassrooms" height="50" class="img-fluid">
@@ -39,14 +37,12 @@
     <div class="row mb-3">
         <div class="col-md-12 d-flex justify-content-end gap-2">
 
-            {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
-                <a href="" class="btn btn-warning">Administration</a>
+            {% if app.user and 'ROLE_ADMIN' in app.user.roles and app.request.get('_route') != 'user_list' %}
+                <a href="{{ path('user_list') }}" class="btn btn-warning">Administration</a>
             {% endif %}
 
             {% if not app.user %}
-                <a href="#
-{#{{ path('user_create') }}#}
-" class="btn btn-primary">Inscription</a>
+                <a href="{{ path('user_create') }}" class="btn btn-primary">Inscription</a>
             {% endif %}
 
             {% if app.user %}
@@ -57,7 +53,6 @@
         </div>
     </div>
 
-    <!-- Flash messages -->
     <div class="row">
         <div class="col-md-12">
             {% for flash_message in app.session.flashBag.get('success') %}
