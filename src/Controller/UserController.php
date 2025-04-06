@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class UserController extends AbstractController
 {
@@ -20,7 +21,8 @@ class UserController extends AbstractController
         private readonly EntityManagerInterface $em,
     ) {}
 
-    #[Route('/user', name: 'user_list', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
+    #[Route('/admin/user', name: 'user_list', methods: ['GET'])]
     public function listUsers(): Response
     {
         $users = $this->userRepository->findAll();
@@ -30,12 +32,15 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/user/{id}/edit', name: 'user_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    #[Route('/admin/user/{id}/edit', name: 'user_edit', methods: ['GET', 'POST'])]
     public function edit(User $user, Request $request): Response
     {
-        $form = $this->createForm(UserType::class, $user, ['require_password' => false]);
+        $currentUser = $this->getUser();
+        $isAdmin = $currentUser && in_array('ROLE_ADMIN', $currentUser->getRoles(), true);
+        $form = $this->createForm(UserType::class, $user, [
+            'is_admin' => $isAdmin, ]);
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
             $plainPassword = $form->get('password')->getData();
             if (null !== $plainPassword && '' !== $plainPassword) {
@@ -52,6 +57,7 @@ class UserController extends AbstractController
         return $this->render('user/edit.html.twig', [
             'form' => $form->createView(),
             'user' => $user,
+            'is_admin' => $isAdmin,
         ]);
     }
 
@@ -59,12 +65,22 @@ class UserController extends AbstractController
     public function create(Request $request): Response
     {
         $user = new User();
-        $form = $this->createForm(UserType::class, $user, ['require_password' => true]);
+        $currentUser = $this->getUser();
+        $isAdmin = $currentUser && in_array('ROLE_ADMIN', $currentUser->getRoles(), true);
+        if ($currentUser && !$isAdmin) {
+            $this->addFlash('error', 'Vous ne pouvez pas créer un nouvel utilisateur.');
+            return $this->redirectToRoute('homepage');
+        }
+        $form = $this->createForm(UserType::class, $user, [
+            'is_admin' => $isAdmin, ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $plainPassword = $form->get('password')->getData();
-            if (null !== $plainPassword && '' !== $plainPassword) {
+            if (!$isAdmin) {
+                $user->setRoles(['ROLE_USER']);
+            }
+            $plainPassword = $form->get('password')->get('first')->getData();
+            if (!empty($plainPassword)) {
                 $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
                 $user->setPassword($hashedPassword);
                 $this->em->persist($user);
@@ -80,4 +96,5 @@ class UserController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
 }
