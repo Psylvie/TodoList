@@ -26,12 +26,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $username = null;
 
     #[ORM\Column(length: 60)]
-    #[Assert\NotBlank(message: "Vous devez saisir un adresse email.")]
+    #[Assert\NotBlank(message: 'Vous devez saisir un adresse email.')]
     #[Assert\Email(message: "Le format de l'adresse n'est pas correcte.")]
     private ?string $email = null;
 
     #[ORM\Column(length: 64)]
-    #[Assert\NotBlank(message: "Le mot de passe est obligatoire")]
     private ?string $password = null;
 
     #[ORM\Column]
@@ -94,6 +93,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $roles = $this->roles;
         $roles[] = 'ROLE_USER';
+
         return array_unique($roles);
     }
 

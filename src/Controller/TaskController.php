@@ -6,6 +6,7 @@ use App\Entity\Task;
 use App\Entity\User;
 use App\Form\TaskType;
 use App\Repository\TaskRepository;
+use App\Security\Voter\TaskVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,13 +21,32 @@ class TaskController extends AbstractController
     ) {}
 
     #[Route('/tasks', name: 'task_list')]
-    public function list(): Response
+    public function listTasksToDo(): Response
     {
         $user = $this->getUser();
-        $tasks = $this->taskRepository->findBy(['user' => $user]);
+        $tasks = $this->taskRepository->findBy([
+            'user' => $user,
+            'isDone' => false,
+        ]);
 
         return $this->render('task/list.html.twig', [
             'tasks' => $tasks,
+            'status' => 'À faire',
+        ]);
+    }
+
+    #[Route('/tasks/completed', name: 'task_list_completed')]
+    public function listCompletedTasks(): Response
+    {
+        $user = $this->getUser();
+        $tasks = $this->taskRepository->findBy([
+            'user' => $user,
+            'isDone' => true,
+        ]);
+
+        return $this->render('task/list.html.twig', [
+            'tasks' => $tasks,
+            'status' => 'Terminées',
         ]);
     }
 
@@ -60,6 +80,10 @@ class TaskController extends AbstractController
     #[Route('/tasks/{id}/edit', name: 'task_edit')]
     public function edit(Task $task, Request $request): Response
     {
+        $user = $this->getUser();
+        if ($task->getUser() !== $user && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à modifier cette tâche.');
+        }
         $form = $this->createForm(TaskType::class, $task);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -93,6 +117,7 @@ class TaskController extends AbstractController
     #[Route('/tasks/{id}/delete', name: 'task_delete')]
     public function delete(Task $task): Response
     {
+        $this->denyAccessUnlessGranted(TaskVoter::DELETE, $task, 'Vous n\'êtes pas autorisé à supprimer cette tâche.');
         $this->em->remove($task);
         $this->em->flush();
 
