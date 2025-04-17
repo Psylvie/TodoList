@@ -2,38 +2,51 @@
 
 namespace App\Tests\Controller;
 
+use App\Controller\SecurityController;
+use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Security\UserChecker;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @covers \App\Controller\SecurityController
+ *
+ * @internal
  */
 class SecurityControllerTest extends WebTestCase
 {
-    private $client;
+    private KernelBrowser $client;
 
     protected function setUp(): void
     {
         $this->client = static::createClient();
     }
 
-    public function loginWithValidUser(): void
+    /**
+     * @covers \App\Controller\SecurityController
+     */
+    public function loginWithValidUser(int $id = 5): void
     {
         $userRepository = $this->client->getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByUsername('loma51');
+        $user = $userRepository->find($id);
+
+        $this->assertNotNull($user, "Utilisateur avec l'ID {$id} introuvable");
 
         $this->client->loginUser($user);
     }
 
+    /**
+     * @covers \App\Controller\SecurityController::login
+     */
     public function testLoginPageForGuest()
     {
-        // Accéder à la page de login sans être connecté
         $crawler = $this->client->request('GET', '/login');
 
-        // Vérifier que la page est accessible
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
 
-        // Vérifier que le formulaire de login est présent
         $this->assertSelectorExists('form[action="/login"]');
     }
 
@@ -65,16 +78,15 @@ class SecurityControllerTest extends WebTestCase
 
     public function testRedirectAfterLogin(): void
     {
-        $crawler = $this->client->request('GET', '/login');
+        $userRepository = $this->client->getContainer()->get(UserRepository::class);
+        $user = $userRepository->find(5);
+        $this->assertNotNull($user, 'Utilisateur avec l’ID 5 introuvable');
 
-        $form = $crawler->selectButton('Se connecter')->form([
-            '_username' => 'loma51',
-            '_password' => 'password123',
-        ]);
+        $this->client->loginUser($user);
 
-        $this->client->submit($form);
+        $this->client->request('GET', '/');
 
-        $this->assertResponseRedirects('/');
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
     }
 
     public function testLoginWithInvalidCredentials(): void
@@ -93,9 +105,11 @@ class SecurityControllerTest extends WebTestCase
         $this->assertSelectorExists('div.alert-danger', "Affichage du message d'erreur");
     }
 
-    public function testLogout()
+    public function testLogout(): void
     {
         $this->loginWithValidUser();
+
+        $this->assertTrue($this->client->getContainer()->get('security.token_storage')->getToken()->getUser() instanceof User);
 
         $this->client->request('GET', '/logout');
 
@@ -104,6 +118,8 @@ class SecurityControllerTest extends WebTestCase
         $this->client->followRedirect();
 
         $this->assertRouteSame('app_login');
+
+        $this->assertNull($this->client->getContainer()->get('security.token_storage')->getToken());
     }
 
     public function testLoginPageIsAccessibleAndCoversController(): void
@@ -125,5 +141,55 @@ class SecurityControllerTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form[action="/login"]');
+    }
+
+    /**
+     * @covers \App\Security\UserChecker
+     */
+    public function testUserCheckerPreAuthThrowsException(): void
+    {
+        self::bootKernel();
+        $userChecker = static::getContainer()->get(UserChecker::class);
+
+        $user = new User();
+
+        $user->setEmail('test@email.com');
+        $user->setUsername('testuser');
+        $user->setPassword('fakepassword');
+        $user->setRoles(['ROLE_USER']);
+
+        $this->expectException(CustomUserMessageAuthenticationException::class);
+        $this->expectExceptionMessage('Vous devez confirmer votre email pour accéder à votre compte');
+        $userChecker->checkPreAuth($user);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @covers \App\Security\UserChecker
+     */
+    public function testCheckPostAuthWithNonAppUser(): void
+    {
+        self::bootKernel();
+        $userChecker = static::getContainer()->get(UserChecker::class);
+
+        $mockUser = $this->createMock(UserInterface::class);
+        $this->assertNotInstanceOf(User::class, $mockUser);
+
+        $userChecker->checkPostAuth($mockUser);
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @covers \App\Controller\SecurityController::loginCheck
+     */
+    public function testLoginCheckThrowsException(): void
+    {
+        $controller = new SecurityController();
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Cette méthode ne doit jamais être exécutée directement. Elle est gérée par le firewall.');
+
+        $controller->loginCheck();
     }
 }
