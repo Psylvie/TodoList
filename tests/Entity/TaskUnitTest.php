@@ -69,4 +69,18 @@ class TaskUnitTest extends TestCase
         $task->toggle(false);
         $this->assertFalse($task->isDone());
     }
+    public function testTimestampsAreSetAndGetCorrectly(): void
+    {
+        $task = new Task();
+
+        $task->initializeTimestampable();
+
+        $this->assertInstanceOf(\DateTimeImmutable::class, $task->getCreatedAt());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $task->getUpdatedAt());
+        $this->assertEquals($task->getCreatedAt(), $task->getUpdatedAt(), 'Les timestamps doivent être égaux après l\'initialisation');
+
+        $task->updateTimestampable();
+
+        $this->assertGreaterThan($task->getCreatedAt(), $task->getUpdatedAt(), 'La date de mise à jour doit être après la date de création');
+    }
 }

@@ -20,7 +20,7 @@ class TaskVoter extends Voter
         $this->security = $security;
     }
 
-    protected function supports(string $attribute, mixed $subject): bool
+    public function supports(string $attribute, mixed $subject): bool
     {
         if (!$subject instanceof Task) {
             return false;
@@ -29,7 +29,7 @@ class TaskVoter extends Voter
         return true;
     }
 
-    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
+    public function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
     {
         $user = $token->getUser();
 
@@ -37,6 +37,7 @@ class TaskVoter extends Voter
             return false;
         }
         if ($this->security->isGranted('ROLE_ADMIN')) {
+            //  An administrator can delete all tasks
             return true;
         }
 
@@ -46,7 +47,7 @@ class TaskVoter extends Voter
         };
     }
 
-    private function canDeleteTask(Task $task, User $user): bool
+    public function canDeleteTask(Task $task, User $user): bool
     {
         return $task->getUser() === $user;
     }
