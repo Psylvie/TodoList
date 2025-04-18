@@ -33,6 +33,6 @@ class SecurityController extends AbstractController
     #[Route('/logout', name: 'app_logout')]
     public function logout(): void
     {
-        $this->addFlash('success', 'Vous êtes déconnecté avec succès.');
+        $this->redirectToRoute('app_login');
     }
 }

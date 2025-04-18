@@ -24,15 +24,17 @@
     </testsuites>
 
     <coverage processUncoveredFiles="true">
+        <exclude>
+            <directory suffix=".php">src/DataFixtures/</directory>
+        </exclude>
         <include>
             <directory suffix=".php">src</directory>
         </include>
     </coverage>
-
     <listeners>
         <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
     </listeners>
 
-    <extensions>
-    </extensions>
+<!--    <extensions>-->
+<!--    </extensions>-->
 </phpunit>
