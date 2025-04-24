@@ -12,7 +12,7 @@ class SecurityController extends AbstractController
     #[Route('/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
-        if (true === $this->getUser()) {
+        if ($this->getUser()) {
             return $this->redirectToRoute('homepage');
         }
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -33,6 +33,6 @@ class SecurityController extends AbstractController
     #[Route('/logout', name: 'app_logout')]
     public function logout(): void
     {
-        $this->redirectToRoute('app_login');
+        throw new \LogicException('Cette méthode est interceptée par le firewall.');
     }
 }

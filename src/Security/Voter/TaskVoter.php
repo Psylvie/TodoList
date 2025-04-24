@@ -20,7 +20,7 @@ class TaskVoter extends Voter
         $this->security = $security;
     }
 
-    public function supports(string $attribute, mixed $subject): bool
+    protected function supports(string $attribute, mixed $subject): bool
     {
         if (!$subject instanceof Task) {
             return false;
@@ -29,7 +29,7 @@ class TaskVoter extends Voter
         return true;
     }
 
-    public function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
     {
         $user = $token->getUser();
 
@@ -47,7 +47,7 @@ class TaskVoter extends Voter
         };
     }
 
-    public function canDeleteTask(Task $task, User $user): bool
+    private function canDeleteTask(Task $task, User $user): bool
     {
         return $task->getUser() === $user;
     }
