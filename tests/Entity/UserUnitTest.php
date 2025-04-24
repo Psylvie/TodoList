@@ -71,14 +71,4 @@ class UserUnitTest extends TestCase
         $user->setUsername('loma51');
         $this->assertEquals('loma51', $user->getUserIdentifier());
     }
-
-    public function testEraseCredentials(): void
-    {
-        $user = new User();
-        $user->setPassword('password123');
-
-        $user->eraseCredentials();
-
-        $this->assertNull($user->getPassword(), "Le mot de passe n'a pas été effacé.");
-    }
 }

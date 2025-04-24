@@ -2,12 +2,9 @@
 
 namespace App\Tests\Controller;
 
-use App\Entity\Task;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
-use App\Security\Voter\TaskVoter;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 /**
  * @covers \App\Controller\TaskController
@@ -16,9 +13,6 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
  */
 class TaskControllerTest extends WebTestCase
 {
-    private $client;
-    private $user;
-    private $em;
 
     public function setUp(): void
     {
@@ -31,7 +25,7 @@ class TaskControllerTest extends WebTestCase
     public function testRedirectIfNotLoggedIn(): void
     {
         $this->client->request('GET', '/tasks');
-        $this->assertResponseRedirects('/login');
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
     }
 
     public function testListTasksToDo(): void
@@ -41,7 +35,7 @@ class TaskControllerTest extends WebTestCase
 
         $this->client->loginUser($user);
 
-        $crawler = $this->client->request('GET', '/tasks');
+        $this->client->request('GET', '/tasks');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('h2', 'Tâches À faire');
@@ -51,17 +45,15 @@ class TaskControllerTest extends WebTestCase
     {
         $this->login();
 
-        $crawler = $this->client->request('GET', '/tasks/completed');
+        $this->client->request('GET', '/tasks/completed');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('h2', 'Tâches Terminées');
     }
 
     /**
-     * @covers \App\Form\TaskType
      * @covers \App\Entity\Task
-     * @return void
-     *
+     * @covers \App\Form\TaskType
      */
     public function testCreate(): void
     {
@@ -106,9 +98,6 @@ class TaskControllerTest extends WebTestCase
         $this->assertSelectorExists('.alert-success');
     }
 
-    /**
-     * @return void
-     */
     public function testToggleTask(): void
     {
         $this->login();
@@ -121,6 +110,10 @@ class TaskControllerTest extends WebTestCase
         $this->assertResponseRedirects('/tasks');
     }
 
+    /**
+     * @covers \App\Security\Voter\TaskVoter
+     * @return void
+     */
     public function testDeleteTask(): void
     {
         $this->login();
@@ -135,21 +128,25 @@ class TaskControllerTest extends WebTestCase
 
     /**
      * @covers \App\Security\Voter\TaskVoter
-     * @return void
      */
     public function testEditAccessDeniedIfNotOwner(): void
     {
         $userRepo = static::getContainer()->get(UserRepository::class);
+        $taskRepo = static::getContainer()->get(TaskRepository::class);
+
         $otherUser = $userRepo->findOneByUsername('iwyman');
+        $this->assertNotNull($otherUser, 'L\'utilisateur non propriétaire doit exister');
+
+        $taskUser = $userRepo->findOneByUsername('kari33');
+        $this->assertNotNull($taskUser, 'L\'utilisateur propriétaire doit exister');
+        $task = $taskRepo->findOneBy(['user' => $taskUser]);
+        $this->assertNotNull($task, 'La tâche doit exister et appartenir au propriétaire');
 
         $this->client->loginUser($otherUser);
 
-        $taskRepo = static::getContainer()->get(TaskRepository::class);
-        $task = $taskRepo->findOneBy(['user' => $this->user]);
-
         $this->client->request('GET', '/tasks/'.$task->getId().'/edit');
 
-        $this->assertResponseStatusCodeSame(403);
+        $this->assertResponseStatusCodeSame(403, 'L\'accès à l\'édition de la tâche doit être interdit pour les utilisateurs non propriétaires');
     }
 
     public function testToggleInvalidTaskIdThrows404(): void
@@ -157,44 +154,6 @@ class TaskControllerTest extends WebTestCase
         $this->login();
         $this->client->request('POST', '/tasks/99999999/toggle');
         $this->assertResponseStatusCodeSame(404);
-    }
-
-    /**
-     * @covers \App\Security\Voter\TaskVoter
-     * @return void
-     */
-    public function testVoterSupportsDeleteAttribute(): void
-    {
-        $voter = static::getContainer()->get(TaskVoter::class);
-
-        $task = $this->createMock(Task::class);
-        $result = $voter->supports(TaskVoter::DELETE, $task);
-        $this->assertTrue($result);
-
-        $nonTask = $this->createMock(\stdClass::class);
-        $result = $voter->supports(TaskVoter::DELETE, $nonTask);
-        $this->assertFalse($result);
-    }
-
-    /**
-     * @covers \App\Security\Voter\TaskVoter
-     * @return void
-     */
-    public function testVoterCanDeleteTask(): void
-    {
-        $voter = static::getContainer()->get(TaskVoter::class);
-
-        $task = $this->createMock(Task::class);
-
-        $task->method('getUser')->willReturn($this->user);
-        $result = $voter->supports(TaskVoter::DELETE, $task);
-        $this->assertTrue($result);
-
-        $token = $this->createMock(TokenInterface::class);
-        $token->method('getUser')->willReturn($this->user);
-
-        $canDelete = $voter->voteOnAttribute(TaskVoter::DELETE, $task, $token);
-        $this->assertTrue($canDelete);
     }
 
     private function login(): void

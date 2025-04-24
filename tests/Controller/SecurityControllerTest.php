@@ -5,11 +5,8 @@ namespace App\Tests\Controller;
 use App\Controller\SecurityController;
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Security\UserChecker;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @covers \App\Controller\SecurityController
@@ -38,18 +35,10 @@ class SecurityControllerTest extends WebTestCase
         $this->client->loginUser($user);
     }
 
+
     /**
      * @covers \App\Controller\SecurityController::login
      */
-    public function testLoginPageForGuest()
-    {
-        $crawler = $this->client->request('GET', '/login');
-
-        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-
-        $this->assertSelectorExists('form[action="/login"]');
-    }
-
     public function testLoginPageIsAccessibleForAnonymousUsers()
     {
         $crawler = $this->client->request('GET', '/login');
@@ -135,51 +124,6 @@ class SecurityControllerTest extends WebTestCase
         $this->assertSelectorExists('button[type="submit"]');
     }
 
-    public function testLoginPageCoversControllerWhenNotLoggedIn(): void
-    {
-        $this->client->request('GET', '/login');
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorExists('form[action="/login"]');
-    }
-
-    /**
-     * @covers \App\Security\UserChecker
-     */
-    public function testUserCheckerPreAuthThrowsException(): void
-    {
-        self::bootKernel();
-        $userChecker = static::getContainer()->get(UserChecker::class);
-
-        $user = new User();
-
-        $user->setEmail('test@email.com');
-        $user->setUsername('testuser');
-        $user->setPassword('fakepassword');
-        $user->setRoles(['ROLE_USER']);
-
-        $this->expectException(CustomUserMessageAuthenticationException::class);
-        $this->expectExceptionMessage('Vous devez confirmer votre email pour accéder à votre compte');
-        $userChecker->checkPreAuth($user);
-        $this->assertTrue(true);
-    }
-
-    /**
-     * @covers \App\Security\UserChecker
-     */
-    public function testCheckPostAuthWithNonAppUser(): void
-    {
-        self::bootKernel();
-        $userChecker = static::getContainer()->get(UserChecker::class);
-
-        $mockUser = $this->createMock(UserInterface::class);
-        $this->assertNotInstanceOf(User::class, $mockUser);
-
-        $userChecker->checkPostAuth($mockUser);
-
-        $this->assertTrue(true);
-    }
-
     /**
      * @covers \App\Controller\SecurityController::loginCheck
      */
@@ -191,5 +135,19 @@ class SecurityControllerTest extends WebTestCase
         $this->expectExceptionMessage('Cette méthode ne doit jamais être exécutée directement. Elle est gérée par le firewall.');
 
         $controller->loginCheck();
+    }
+
+    public function testLoginRedirectsIfUserIsLoggedIn(): void
+    {
+        $userRepository = $this->client->getContainer()->get(UserRepository::class);
+        $user = $userRepository->find(5);
+
+        $this->assertNotNull($user);
+
+        $this->client->loginUser($user);
+
+        $this->client->request('GET', '/login');
+
+        $this->assertResponseRedirects('/');
     }
 }

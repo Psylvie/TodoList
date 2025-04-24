@@ -3,6 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\Repository\UserRepository;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -13,8 +14,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  */
 class UserControllerTest extends WebTestCase
 {
-    private $client;
-    private $userRepository;
+    private KernelBrowser $client;
+    private mixed $userRepository;
 
     public function setUp(): void
     {
@@ -73,7 +74,7 @@ class UserControllerTest extends WebTestCase
     public function testCreateUserAsNonAdmin(): void
     {
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $nonAdmin = $userRepository->findOneBy(['username' => 'atowne']);
+        $nonAdmin = $userRepository->findOneBy(['id' => '5']);
         $this->assertNotNull($nonAdmin);
 
         $this->client->loginUser($nonAdmin);
@@ -89,7 +90,10 @@ class UserControllerTest extends WebTestCase
         $userToEdit = $this->userRepository->find(5);
         $this->assertNotNull($userToEdit);
 
-        $crawler = $this->client->request('GET', '/admin/user/'.$userToEdit->getId().'/edit');
+        $isAdmin = $this->userRepository->findOneBy(['username' => 'mekhi.kessler']);
+        $this->assertNotNull($isAdmin);
+        $this->client->loginUser($isAdmin);
+        $crawler = $this->client->request('GET', '/admin/user/5/edit');
         $this->assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Modifier')->form([
@@ -103,4 +107,6 @@ class UserControllerTest extends WebTestCase
         $this->client->followRedirect();
         $this->assertSelectorExists('.alert-success');
     }
+
+
 }
