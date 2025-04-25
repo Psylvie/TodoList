@@ -31,6 +31,9 @@ class Task
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $deadline = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -71,6 +74,7 @@ class Task
 
         return $this;
     }
+
     public function toggle(bool $isDone): void
     {
         $this->isDone = $isDone;
@@ -88,4 +92,13 @@ class Task
         return $this;
     }
 
+    public function getDeadline(): ?\DateTimeInterface
+    {
+        return $this->deadline;
+    }
+
+    public function setDeadline(?\DateTimeInterface $deadline): void
+    {
+        $this->deadline = $deadline;
+    }
 }

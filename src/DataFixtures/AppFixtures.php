@@ -55,6 +55,30 @@ class AppFixtures extends Fixture
 
             $manager->persist($user);
         }
+        $anonymousUser = new User();
+        $anonymousUser->setUsername('anonyme')
+            ->setEmail('anonyme@todo.com')
+            ->setRoles(['ROLE_USER'])
+            ->setPassword(
+                $this->passwordHasher->hashPassword($anonymousUser, 'password123')
+            )
+            ->initializeTimestampable()
+        ;
+
+        for ($k = 0; $k < 5; ++$k) {
+            $task = new Task();
+            $task->setTitle('Tâche anonyme '.($k + 1))
+                ->setContent('Ceci est une tâche créée sans utilisateur initial.')
+                ->setIsDone(false)
+                ->setUser($anonymousUser)
+                ->initializeTimestampable()
+            ;
+
+            $manager->persist($task);
+            $anonymousUser->addTask($task);
+        }
+
+        $manager->persist($anonymousUser);
 
         $manager->flush();
     }

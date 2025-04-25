@@ -41,12 +41,12 @@ class UserType extends AbstractType
                 'invalid_message' => 'Les deux mots de passe doivent correspondre.',
                 'mapped' => false,
                 'first_options' => [
-                    'label' => $isAdmin
+                    'label' => !$isAdmin
                         ? 'Mot de passe'
                         : 'Mot de passe (laissez vide pour conserver le mot de passe actuel)',
                 ],
                 'second_options' => ['label' => 'Tapez le mot de passe à nouveau'],
-                'required' => $isAdmin,
+                'required' => !$isAdmin,
             ])
         ;
     }

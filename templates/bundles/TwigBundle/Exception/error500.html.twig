@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Erreur serveur{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-center">
+        <div class="text-center">
+            <h1 class="display-4 text-danger">Une erreur est survenue</h1>
+            <p>Le serveur a rencontré un problème. Merci de réessayer plus tard.</p>
+            <a href="{{ path('homepage') }}" class="btn btn-primary mt-3">Retour à l'accueil</a>
+        </div>
+    </div>
+{% endblock %}

@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -16,6 +17,7 @@ class TaskType extends AbstractType
         $builder
             ->add('title', TextType::class, [
                 'label' => 'Titre de la tâche',
+                'empty_data' => '',
                 'constraints' => [
                     new NotBlank(['message' => 'Le titre est obligatoire.']),
                     new Length([
@@ -32,6 +34,12 @@ class TaskType extends AbstractType
                 'constraints' => [
                     new NotBlank(['message' => 'La description ne peut pas être vide.']),
                 ],
+            ])
+            ->add('deadline', DateTimeType::class, [
+                'required' => false,
+                'widget' => 'single_text',
+                'html5' => true,
+                'label' => 'Deadline',
             ])
         ;
     }

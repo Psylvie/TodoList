@@ -22,11 +22,14 @@
                             {% else %}
                                 <i class="fas fa-times-circle"></i> Non terminée
                             {% endif %}
+                            {% if task.deadline is not null %}
+                           <div> Deadline: {{ task.deadline|date('d/m/Y H:i') }}</div>
+                            {% endif %}
                         </h6>
                         <div class="d-flex justify-content-between">
                             <form action="{{ path('task_toggle', {'id': task.id }) }}" method="post">
                                 <button class="btn btn-success btn-sm">
-                                    {% if not task.isDone %}Marquer comme faite{% else %}Marquer non terminée{% endif %}
+                                    {% if not task.isDone %}Marquer comme faite{% else %}Marquer non terminée {% endif %}
                                 </button>
                             </form>
                             <form action="{{ path('task_delete', {'id': task.id }) }}" method="post">

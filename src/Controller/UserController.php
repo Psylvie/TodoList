@@ -41,6 +41,7 @@ class UserController extends AbstractController
         $form = $this->createForm(UserType::class, $user, [
             'is_admin' => $isAdmin, ]);
         $form->handleRequest($request);
+        $tasks = $user->getTasks();
         if ($form->isSubmitted() && $form->isValid()) {
             $plainPassword = $form->get('password')->getData();
             if (null !== $plainPassword && '' !== $plainPassword) {
@@ -58,6 +59,7 @@ class UserController extends AbstractController
             'form' => $form->createView(),
             'user' => $user,
             'is_admin' => $isAdmin,
+            'tasks' => $tasks,
         ]);
     }
 

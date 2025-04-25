@@ -23,6 +23,11 @@
                 {{ form_widget(form.content, {'attr': {'class': 'form-control', 'rows': 6}}) }}
                 {{ form_errors(form.content) }}
             </div>
+            <div class="form-group">
+                {{ form_label(form.deadline, 'Deadline', {'label_attr': {'class': 'control-label'}}) }}
+                {{ form_widget(form.deadline, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+                {{ form_errors(form.deadline) }}
+            </div>
 
             <div class="text-end">
                 <button type="submit" class="btn btn-success">Modifier</button>

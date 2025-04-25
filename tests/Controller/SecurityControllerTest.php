@@ -102,11 +102,11 @@ class SecurityControllerTest extends WebTestCase
 
         $this->client->request('GET', '/logout');
 
-        $this->assertResponseRedirects('/login');
+        $this->assertResponseRedirects('/');
 
         $this->client->followRedirect();
 
-        $this->assertRouteSame('app_login');
+        $this->assertRouteSame('homepage');
 
         $this->assertNull($this->client->getContainer()->get('security.token_storage')->getToken());
     }

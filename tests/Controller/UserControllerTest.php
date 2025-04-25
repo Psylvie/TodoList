@@ -90,8 +90,8 @@ class UserControllerTest extends WebTestCase
         $userToEdit = $this->userRepository->find(5);
         $this->assertNotNull($userToEdit);
 
-        $isAdmin = $this->userRepository->findOneBy(['username' => 'mekhi.kessler']);
-        $this->assertNotNull($isAdmin);
+        $isAdmin = $this->userRepository->find(1);
+        $this->assertNotNull($isAdmin, 'L\'administrateur doit exister avec l\'ID 1');
         $this->client->loginUser($isAdmin);
         $crawler = $this->client->request('GET', '/admin/user/5/edit');
         $this->assertResponseIsSuccessful();
