@@ -18,7 +18,8 @@ class TaskControllerTest extends WebTestCase
     {
         $this->client = static::createClient();
         $userRepository = $this->client->getContainer()->get(UserRepository::class);
-        $this->user = $userRepository->findOneByUsername('kari33');
+        $this->user = $userRepository->find(5);
+        $this->assertNotNull($this->user, 'Aucun utilisateur trouvé avec l\'ID spécifié');
         $this->em = $this->client->getContainer()->get('doctrine')->getManager();
     }
 
@@ -31,9 +32,8 @@ class TaskControllerTest extends WebTestCase
     public function testListTasksToDo(): void
     {
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByUsername('kari33');
 
-        $this->client->loginUser($user);
+        $this->client->loginUser($this->user);
 
         $this->client->request('GET', '/tasks');
 
@@ -134,10 +134,10 @@ class TaskControllerTest extends WebTestCase
         $userRepo = static::getContainer()->get(UserRepository::class);
         $taskRepo = static::getContainer()->get(TaskRepository::class);
 
-        $otherUser = $userRepo->findOneByUsername('iwyman');
+        $otherUser = $userRepo->find(2);
         $this->assertNotNull($otherUser, 'L\'utilisateur non propriétaire doit exister');
 
-        $taskUser = $userRepo->findOneByUsername('kari33');
+        $taskUser = $this->user;
         $this->assertNotNull($taskUser, 'L\'utilisateur propriétaire doit exister');
         $task = $taskRepo->findOneBy(['user' => $taskUser]);
         $this->assertNotNull($task, 'La tâche doit exister et appartenir au propriétaire');

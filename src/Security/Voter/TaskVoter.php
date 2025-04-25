@@ -36,9 +36,12 @@ class TaskVoter extends Voter
         if (!$user instanceof User) {
             return false;
         }
+
         if ($this->security->isGranted('ROLE_ADMIN')) {
-            //  An administrator can delete all tasks
             return true;
+        }
+        if ($subject instanceof Task && $subject->getUser() && 'anonyme' === $subject->getUser()->getUsername()) {
+            return $this->security->isGranted('ROLE_ADMIN');
         }
 
         return match ($attribute) {
