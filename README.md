@@ -1,5 +1,7 @@
 # ✅ ToDo & Co – Task Management Symfony Application
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/45f6611b55394e50a2d81573ce2270de)](https://app.codacy.com/gh/Psylvie/TodoList/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 **ToDo & Co** is a Symfony application designed to help users manage their daily tasks. It features an authentication system with role management (user/admin) and a set of authorization rules. The application aims to provide an intuitive dashboard for easy personal task management.
 
 ---
