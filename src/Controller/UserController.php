@@ -63,24 +63,16 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/users/create', name: 'user_create', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
         $user = new User();
-        $currentUser = $this->getUser();
-        $isAdmin = $currentUser && in_array('ROLE_ADMIN', $currentUser->getRoles(), true);
-        if ($currentUser && !$isAdmin) {
-            $this->addFlash('error', 'Vous ne pouvez pas créer un nouvel utilisateur.');
-            return $this->redirectToRoute('homepage');
-        }
-        $form = $this->createForm(UserType::class, $user, [
-            'is_admin' => $isAdmin, ]);
+
+        $form = $this->createForm(UserType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if (!$isAdmin) {
-                $user->setRoles(['ROLE_USER']);
-            }
             $plainPassword = $form->get('password')->get('first')->getData();
             if (!empty($plainPassword)) {
                 $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
